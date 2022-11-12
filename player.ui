@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>868</width>
+    <height>646</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Microsoft JhengHei UI</family>
+    <pointsize>12</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QPlainTextEdit" name="plainTextEdit">
+   <property name="geometry">
+    <rect>
+     <x>13</x>
+     <y>10</y>
+     <width>841</width>
+     <height>511</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="playButton">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>550</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft JhengHei</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="volumeUpButton">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>580</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft JhengHei UI</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Volume+</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="volumeDownButton">
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>580</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft JhengHei UI</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Volume-</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pauseButton">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>610</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft JhengHei UI</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </widget>
+  <widget class="QSlider" name="horizontalSlider">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>530</y>
+     <width>761</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>530</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft JhengHei UI</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>00:00/03:59</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
