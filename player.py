@@ -1,10 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QUrl, QTimer
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
-from PyQt5.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
+from PyQt5.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat, QTextFormat
+from PyQt5.Qt import Qt
 
 import os
 import pysrt
+from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit
 
 import app
 
@@ -20,9 +22,9 @@ class SyntaxHighlighter(QSyntaxHighlighter):
             block = self.document().findBlockByLineNumber(line_num)
             self.rehighlightBlock(block)
 
-    def clear_highlight(self):
-        self._highlight_lines = {}
-        self.rehighlight()
+    # def clear_highlight(self):
+    #     self._highlight_lines = {}
+    #     self.rehighlight()
 
     def highlightBlock(self, text):
         blockNumber = self.currentBlock().blockNumber()
@@ -34,6 +36,7 @@ class SyntaxHighlighter(QSyntaxHighlighter):
 class Ui_Form(object):
     def __init__(self, filename):
         self.filename = filename
+        super().__init__()
 
     def setupUi(self, Form):
         Form.setObjectName("Form")
@@ -45,6 +48,9 @@ class Ui_Form(object):
         self.plainTextEdit = QtWidgets.QPlainTextEdit(Form)
         self.plainTextEdit.setGeometry(QtCore.QRect(13, 10, 841, 471))
         self.plainTextEdit.setObjectName("plainTextEdit")
+        self.plainTextEdit_2 = QtWidgets.QPlainTextEdit(Form)
+        self.plainTextEdit_2.setGeometry(QtCore.QRect(13, 10, 841, 471))
+        self.plainTextEdit_2.setObjectName("plainTextEdit_2")
         self.playButton = QtWidgets.QPushButton(Form)
         self.playButton.setGeometry(QtCore.QRect(390, 550, 75, 23))
         font = QtGui.QFont()
@@ -118,23 +124,45 @@ class Ui_Form(object):
         font.setPointSize(8)
         self.backButton.setFont(font)
         self.backButton.setObjectName("backButton")
+        self.lineViewButton = QtWidgets.QPushButton(Form)
+        self.lineViewButton.setGeometry(QtCore.QRect(624, 490, 111, 23))
+        font = QtGui.QFont()
+        font.setFamily("Microsoft JhengHei UI")
+        font.setPointSize(8)
+        self.lineViewButton.setFont(font)
+        self.lineViewButton.setObjectName("lineViewButton")
+        self.wrappedViewButton = QtWidgets.QPushButton(Form)
+        self.wrappedViewButton.setGeometry(QtCore.QRect(754, 490, 101, 23))
+        font = QtGui.QFont()
+        font.setFamily("Microsoft JhengHei UI")
+        font.setPointSize(8)
+        self.wrappedViewButton.setFont(font)
+        self.wrappedViewButton.setObjectName("wrappedViewButton")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
         self.timer = QTimer()
-        self.timer.timeout.connect(self.on_timeout)
+        self.timer2 = QTimer()
+        self.timer.timeout.connect(self.on_timeout_wrappedView)
+        self.timer2.timeout.connect(self.on_timeout_lineView)
         self.start_time = 0
+        self.start_time2 = 0
         self.end_time = 0
         self.i = 0
+        self.i2 = 0
 
         self.seconds = 0
         self.audio_duration = 0
 
+        self.text_len = 0
+
         self.player = QMediaPlayer()
 
         self.loadFile(self.filename)
-        self.loadText()
+
+        self.loadText_lineView()
+        self.loadText_wrapped()
 
         self.playButton.clicked.connect(self.playAudioFile)
         self.pauseButton.clicked.connect(self.pause_player)
@@ -142,6 +170,7 @@ class Ui_Form(object):
         self.volumeDownButton.clicked.connect(self.volumeDown)
 
         self.slider.sliderMoved.connect(self.set_position)
+        self.slider.setDisabled(True)
 
         self.player.positionChanged.connect(self.position_changed)
         self.player.durationChanged.connect(self.duration_changed)
@@ -150,6 +179,14 @@ class Ui_Form(object):
 
         self.backButton.clicked.connect(self.back_to_menu)
         self.backButton.clicked.connect(Form.close)
+
+        self.plainTextEdit.hide()
+
+        self.lineViewButton.setEnabled(False)
+        self.wrappedViewButton.setEnabled(True)
+
+        self.lineViewButton.clicked.connect(self.clickLineViewButton)
+        self.wrappedViewButton.clicked.connect(self.clickWrappedViewButton)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
@@ -163,6 +200,23 @@ class Ui_Form(object):
         self.slashLabel.setText(_translate("Form", "/"))
         self.endLabel.setText(_translate("Form", "03:00"))
         self.backButton.setText(_translate("Form", "Powrót do menu"))
+        self.lineViewButton.setText(_translate("Form", "Widok liniowy"))
+        self.wrappedViewButton.setText(_translate("Form", "Sklejony tekst"))
+
+    def clickLineViewButton(self):
+        self.lineViewButton.setEnabled(False)
+        self.wrappedViewButton.setEnabled(True)
+        self.saveButton.setEnabled(True)
+        self.plainTextEdit_2.show()
+        self.plainTextEdit.hide()
+
+
+    def clickWrappedViewButton(self):
+        self.lineViewButton.setEnabled(True)
+        self.wrappedViewButton.setEnabled(False)
+        self.saveButton.setEnabled(False)
+        self.plainTextEdit_2.hide()
+        self.plainTextEdit.show()
 
     def volumeUp(self):
         currentVolume = self.player.volume()
@@ -178,6 +232,7 @@ class Ui_Form(object):
         self.seconds -= 1
         self.player.pause()
         self.timer.stop()
+        self.timer2.stop()
         self.playButton.setEnabled(True)
 
     def loadFile(self, filename):
@@ -190,12 +245,16 @@ class Ui_Form(object):
     def playAudioFile(self):
         self.seconds -= 1
         print(self.start_time)
-        if self.start_time == 0:
+        if self.start_time == 0 and self.start_time2 == 0:
             self.timer = QTimer()
-            self.timer.timeout.connect(self.on_timeout)
+            self.timer2 = QTimer()
+            self.timer.timeout.connect(self.on_timeout_wrappedView)
+            self.timer2.timeout.connect(self.on_timeout_lineView)
             self.start_time = 0
+            self.start_time2 = 0
             self.end_time = 0
             self.i = 0
+            self.i2 = 0
 
             self.seconds = 0
 
@@ -217,12 +276,28 @@ class Ui_Form(object):
             print("error")
         else:
             self.timer.start()
+            self.timer2.start()
 
-    def loadText(self):
+    def loadText_lineView(self):
         subs = pysrt.open("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
 
         for sub in subs:
-            self.plainTextEdit.appendPlainText(sub.text)
+            self.plainTextEdit_2.appendPlainText(sub.text)
+            print(str(sub.start.hours) + ":" + str(sub.start.minutes) + ":" + str(sub.start.seconds) + ":" + str(
+                sub.start.milliseconds)
+                  + " --- " + str(sub.end.hours) + ":" + str(sub.end.minutes) + ":" + str(sub.end.seconds) + ":" + str(
+                sub.end.milliseconds))
+            print(sub.end)
+            milliseconds_start = sub.start.milliseconds + sub.start.seconds * 1000 + sub.start.minutes * 60000 + sub.start.hours * 60000 * 60
+            milliseconds_end = sub.end.milliseconds + sub.end.seconds * 1000 + sub.end.minutes * 60000 + sub.end.hours * 60000 * 60
+            duration = milliseconds_end - milliseconds_start
+            print(duration)
+
+    def loadText_wrapped(self):
+        subs = pysrt.open("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
+
+        for sub in subs:
+            self.plainTextEdit.insertPlainText(sub.text + " ")
             print(str(sub.start.hours) + ":" + str(sub.start.minutes) + ":" + str(sub.start.seconds) + ":" + str(
                 sub.start.milliseconds)
                   + " --- " + str(sub.end.hours) + ":" + str(sub.end.minutes) + ":" + str(sub.end.seconds) + ":" + str(
@@ -242,6 +317,7 @@ class Ui_Form(object):
         self.startLabel.setText(time)
 
         print("timer: ", self.timer.remainingTime())
+        print("timer2: ", self.timer2.remainingTime())
         self.slider.setValue(position)
 
     def duration_changed(self, duration):
@@ -266,7 +342,8 @@ class Ui_Form(object):
     def onTextChanged(self, text):
         fmt = QTextCharFormat()
         fmt.setBackground(QColor('yellow'))
-        self.highlighter.clear_highlight()
+        # self.highlighter.clear_highlight()
+        # self.highlighter2.clear_highlight()
 
         try:
             lineNumber = int(text) - 1
@@ -274,7 +351,7 @@ class Ui_Form(object):
         except ValueError:
             pass
 
-    def on_timeout(self):
+    def on_timeout_lineView(self):
         subs = pysrt.open("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
 
         self.audio_duration = (subs[-1].end.milliseconds + subs[-1].end.seconds * 1000 + subs[
@@ -282,7 +359,70 @@ class Ui_Form(object):
 
         print("audio duration: ", self.audio_duration)
 
-        if self.start_time <= self.audio_duration:
+        if self.start_time2 <= self.audio_duration - 0.2:
+
+            print(str(subs[self.i2].start.hours) + ":" + str(subs[self.i2].start.minutes) + ":" + str(
+                subs[self.i2].start.seconds) + ":" + str(
+                subs[self.i2].start.milliseconds)
+                  + " --- " + str(subs[self.i2].end.hours) + ":" + str(subs[self.i2].end.minutes) + ":" + str(
+                subs[self.i2].end.seconds) + ":" + str(
+                subs[self.i2].end.milliseconds))
+            print(subs[self.i2].end)
+            milliseconds_start = subs[self.i2].start.milliseconds + subs[self.i2].start.seconds * 1000 + subs[
+                self.i2].start.minutes * 60000 + subs[self.i2].start.hours * 60000 * 60
+            milliseconds_end = subs[self.i2].end.milliseconds + subs[self.i2].end.seconds * 1000 + subs[
+                self.i2].end.minutes * 60000 + subs[self.i2].end.hours * 60000 * 60
+            duration = milliseconds_end - milliseconds_start
+
+            if (self.i2 == 0 and subs[self.i2].start != "00:00:00,000"):
+                end = subs[self.i2].end.milliseconds + subs[self.i2].end.seconds * 1000 + subs[
+                    self.i2].end.minutes * 60000 + subs[self.i2].end.hours * 60000 * 60
+                print("interval", end)
+                self.timer2.setInterval(end)
+                self.start_time2 += end / 1000
+
+            elif len(subs) > self.i2 + 1 and subs[self.i2].end != subs[self.i2 + 1].start:
+                end = subs[self.i2].end.milliseconds + subs[self.i2].end.seconds * 1000 + subs[
+                    self.i2].end.minutes * 60000 + subs[self.i2].end.hours * 60000 * 60
+                start = subs[self.i2 + 1].start.milliseconds + subs[self.i2 + 1].start.seconds * 1000 + subs[
+                    self.i2 + 1].start.minutes * 60000 + subs[self.i2 + 1].start.hours * 60000 * 60
+                duration = duration + start - end
+                print("interval", duration)
+                self.timer2.setInterval(duration)
+                self.start_time2 += duration / 1000
+            else:
+                print("interval", duration)
+                self.timer2.setInterval(duration)
+                self.start_time2 += duration / 1000
+
+            print("spent_time: ", self.start_time2)
+
+            self.highlighter2 = SyntaxHighlighter(self.plainTextEdit_2.document())
+            fmt = QTextCharFormat()
+            fmt.setBackground(QColor('yellow'))
+
+            self.highlighter2.highlight_line(self.i2, fmt)
+
+            self.i2 += 1
+
+        else:
+            self.seconds = -1
+            self.timer2.disconnect()
+            self.timer.disconnect()
+            self.start_time = 0
+            self.start_time2 = 0
+            self.player.stop()
+            self.playButton.setEnabled(True)
+
+    def on_timeout_wrappedView(self):
+        subs = pysrt.open("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
+
+        self.audio_duration = (subs[-1].end.milliseconds + subs[-1].end.seconds * 1000 + subs[
+            -1].end.minutes * 60000 + subs[-1].end.hours * 60000 * 60) / 1000
+
+        print("audio duration: ", self.audio_duration)
+
+        if self.start_time <= self.audio_duration - 0.2:
 
             print(str(subs[self.i].start.hours) + ":" + str(subs[self.i].start.minutes) + ":" + str(
                 subs[self.i].start.seconds) + ":" + str(
@@ -324,21 +464,34 @@ class Ui_Form(object):
             fmt = QTextCharFormat()
             fmt.setBackground(QColor('yellow'))
 
-            self.highlighter.highlight_line(self.i, fmt)
+            extraSelections = []
+
+            selection = QTextEdit.ExtraSelection()
+            selection.cursor = self.plainTextEdit.textCursor()
+            selection.cursor.setPosition(self.text_len)
+            self.text_len += len(subs[self.i].text) + 1
+            selection.cursor.setPosition(self.text_len, QtGui.QTextCursor.KeepAnchor)
+            selection.cursor.setCharFormat(fmt)
+
+            selection.cursor.clearSelection()
+            extraSelections.append(selection)
+            self.plainTextEdit.setExtraSelections(extraSelections)
 
             self.i += 1
+
         else:
             self.seconds = -1
             self.timer.disconnect()
+            self.timer2.disconnect()
             self.start_time = 0
+            self.start_time2 = 0
             self.player.stop()
             self.playButton.setEnabled(True)
-
 
     def save(self):
         subs = pysrt.open("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
 
-        modified_subs = self.plainTextEdit.toPlainText()
+        modified_subs = self.plainTextEdit_2.toPlainText()
 
         f = open("transcriptions/subtitles.txt", "w")
         f.write(modified_subs)
@@ -356,10 +509,47 @@ class Ui_Form(object):
 
         subs.save("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
 
+
+    # def save(self):
+    #     subs = pysrt.open("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
+    #
+    #     modified_subs = self.plainTextEdit.toPlainText()
+    #
+    #     f = open("transcriptions/subtitles_srt.txt", "w")
+    #     f.write(subs.text)
+    #     f.close()
+    #
+    #     f = open("transcriptions/subtitles_srt_old.txt", "w")
+    #     f.write(subs.text)
+    #     f.close()
+    #
+    #     f = open("transcriptions/subtitles.txt", "w")
+    #     f.write(modified_subs)
+    #     f.close()
+    #
+    #     f = open("transcriptions/subtitles_srt.txt", "r")
+    #     f2 = open("transcriptions/subtitles.txt", "r")
+    #
+    #     i = 0
+    #
+    #     for ind, line in enumerate(f):
+    #         line = line.replace("\n", "")
+    #         sub_len = len(line) + 1
+    #         line2 = f2.read(sub_len)
+    #         line2 = line2.rstrip()
+    #         if line != line2:
+    #             print(ind, " xd: ", line2)
+    #             subs[ind].text = line2.lstrip()
+    #
+    #     f.close()
+    #
+    #     subs.save("transcriptions/" + self.filename.split('.', 1)[0] + ".srt")
+
     def back_to_menu(self):
         self.player.stop()
         try:
             self.timer.disconnect()
+            self.timer2.disconnect()
         except:
             print("error")
         self.window = QtWidgets.QMainWindow()

@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QWidget
 
 import os
 from os.path import splitext
@@ -16,9 +16,9 @@ import player
 
 class Ui_MainWindow(object):
     def __init__(self):
+        super().__init__()
         self.filename = ""
         self.model_name = ""
-        super(Ui_MainWindow, self).__init__()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -102,6 +102,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.chooseModelComboBox.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -193,9 +194,12 @@ class Ui_MainWindow(object):
         self.filename = QFileDialog.getOpenFileName()
         self.browseFileEdit.unsetCursor()
         self.browseFileEdit.setText(self.filename[0])
-        if self.filename[0].endswith(".mp3") and not os.path.exists(os.path.join(os.getcwd(), 'transcriptions', self.filename[0])):
-
-            shutil.copy(self.filename[0], os.path.join(os.getcwd(), 'transcriptions'))
+        try:
+            if self.filename[0].endswith(".mp3"):
+                print(os.getcwd(), 'transcriptions', self.filename[0])
+                shutil.copy(self.filename[0], os.path.join(os.getcwd(), 'transcriptions'))
+        except:
+            print("file already exists")
 
     def getModel(self):
         self.model = self.chooseModelComboBox.currentText()
@@ -216,6 +220,10 @@ class Ui_MainWindow(object):
         end = time.time()
         hours, rem = divmod(end - start, 3600)
         minutes, seconds = divmod(rem, 60)
+
+        number = self.get_data()
+        self.tableView.setRowCount(number)
+        self.load_data()
 
         duration = "{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds)
         print(duration)
