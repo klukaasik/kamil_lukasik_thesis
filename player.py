@@ -139,6 +139,21 @@ class Ui_Form(object):
         self.wrappedViewButton.setFont(font)
         self.wrappedViewButton.setObjectName("wrappedViewButton")
 
+        self.plusButton = QtWidgets.QPushButton(Form)
+        self.plusButton.setGeometry(QtCore.QRect(640, 550, 101, 23))
+        font = QtGui.QFont()
+        font.setFamily("Microsoft JhengHei UI")
+        font.setPointSize(8)
+        self.plusButton.setFont(font)
+        self.plusButton.setObjectName("plusButton")
+        self.minusButton = QtWidgets.QPushButton(Form)
+        self.minusButton.setGeometry(QtCore.QRect(754, 550, 101, 23))
+        font = QtGui.QFont()
+        font.setFamily("Microsoft JhengHei UI")
+        font.setPointSize(8)
+        self.minusButton.setFont(font)
+        self.minusButton.setObjectName("minusButton")
+
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
@@ -151,6 +166,7 @@ class Ui_Form(object):
         self.end_time = 0
         self.i = 0
         self.i2 = 0
+        self.alphaF = 1
 
         self.seconds = 0
         self.audio_duration = 0
@@ -188,6 +204,9 @@ class Ui_Form(object):
         self.lineViewButton.clicked.connect(self.clickLineViewButton)
         self.wrappedViewButton.clicked.connect(self.clickWrappedViewButton)
 
+        self.plusButton.clicked.connect(self.transparencyUp)
+        self.minusButton.clicked.connect(self.transparencyDown)
+
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
@@ -202,6 +221,8 @@ class Ui_Form(object):
         self.backButton.setText(_translate("Form", "Powrót do menu"))
         self.lineViewButton.setText(_translate("Form", "Widok liniowy"))
         self.wrappedViewButton.setText(_translate("Form", "Sklejony tekst"))
+        self.plusButton.setText(_translate("Form", "Przezroczystość +"))
+        self.minusButton.setText(_translate("Form", "Przezroczystość -"))
 
     def clickLineViewButton(self):
         self.lineViewButton.setEnabled(False)
@@ -217,6 +238,22 @@ class Ui_Form(object):
         self.saveButton.setEnabled(False)
         self.plainTextEdit_2.hide()
         self.plainTextEdit.show()
+
+    def transparencyUp(self):
+        if self.alphaF < 1:
+            self.alphaF += 0.05
+            print("transparency: ", self.alphaF)
+        else:
+            self.alphaF = self.alphaF
+            print("transparency: ", self.alphaF)
+
+    def transparencyDown(self):
+        if self.alphaF > 0:
+            self.alphaF -= 0.05
+            print("transparency: ", self.alphaF)
+        else:
+            self.alphaF = self.alphaF
+            print("transparency: ", self.alphaF)
 
     def volumeUp(self):
         currentVolume = self.player.volume()
@@ -399,7 +436,9 @@ class Ui_Form(object):
 
             self.highlighter2 = SyntaxHighlighter(self.plainTextEdit_2.document())
             fmt = QTextCharFormat()
-            fmt.setBackground(QColor('yellow'))
+            color = QColor('yellow')
+            color.setAlphaF(self.alphaF)
+            fmt.setBackground(color)
 
             self.highlighter2.highlight_line(self.i2, fmt)
 
@@ -463,6 +502,9 @@ class Ui_Form(object):
             self.highlighter = SyntaxHighlighter(self.plainTextEdit.document())
             fmt = QTextCharFormat()
             fmt.setBackground(QColor('yellow'))
+            color = QColor('yellow')
+            color.setAlphaF(self.alphaF)
+            fmt.setBackground(color)
 
             extraSelections = []
 
